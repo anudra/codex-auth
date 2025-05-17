@@ -1,15 +1,27 @@
 'use client'
 
 import { useSession, signIn, signOut } from 'next-auth/react'
-import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function Home() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (
+      session?.user &&
+      (!session.user.rollNo || !session.user.semester || !session.user.branch)
+    ) {
+      router.push('/complete-profile')
+    }
+  }, [session, router])
+
+  if (status === "loading") return <div>Loading...</div>
 
   return (
     <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 40 }}>
       <h1>Welcome to Codex Auth</h1>
-
       {session ? (
         <>
           <p>Signed in as {session.user?.name}</p>
