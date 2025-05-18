@@ -2,22 +2,64 @@
 
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function Home() {
-  const { data: session, status } = useSession()
+  const { data: session, status, update } = useSession()
   const router = useRouter()
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (
-      session?.user &&
-      (!session.user.rollNo || !session.user.semester || !session.user.branch)
-    ) {
-      router.push('/complete-profile')
-    }
-  }, [session, router])
+    const checkProfile = async () => {
+      if (!session?.user?.email) {
+        setLoading(false)
+        return
+      }
 
-  if (status === "loading") return <div>Loading...</div>
+      // 1. Fetch profile from database
+      const res = await fetch('/api/user-profile')
+      if (!res.ok) {
+        setLoading(false)
+        return
+      }
+      const dbProfile = await res.json()
+
+      // 2. If DB is missing any field, redirect to complete-profile
+      if (!dbProfile.roll_no || !dbProfile.semester || !dbProfile.branch) {
+        router.push('/complete-profile')
+        return
+      }
+
+      // 3. If session is missing but DB has, poll session until updated
+      if (
+        !session.user.rollNo ||
+        !session.user.semester ||
+        !session.user.branch
+      ) {
+        for (let i = 0; i < 10; i++) {
+          const newSession = await update()
+          if (
+            newSession?.user?.rollNo &&
+            newSession?.user?.semester &&
+            newSession?.user?.branch
+          ) {
+            break
+          }
+          await new Promise(res => setTimeout(res, 500))
+        }
+      }
+
+      setLoading(false)
+    }
+
+    if (status === 'authenticated') {
+      checkProfile()
+    } else if (status !== 'loading') {
+      setLoading(false)
+    }
+  }, [session, status, router, update])
+
+  if (loading || status === "loading") return <div>Loading...</div>
 
   return (
     <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 40 }}>

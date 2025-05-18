@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export default function CompleteProfile() {
   const [rollNo, setRollNo] = useState('');
@@ -9,6 +10,23 @@ export default function CompleteProfile() {
   const [branch, setBranch] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+  const { update } = useSession();
+
+  const waitForSessionUpdate = async () => {
+    // Poll the session until all fields are present
+    for (let i = 0; i < 10; i++) {
+      const session = await update();
+      if (
+        session?.user?.rollNo &&
+        session?.user?.semester &&
+        session?.user?.branch
+      ) {
+        return true;
+      }
+      await new Promise(res => setTimeout(res, 500));
+    }
+    return false;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +37,8 @@ export default function CompleteProfile() {
       headers: { 'Content-Type': 'application/json' },
     });
     if (res.ok) {
+      // Wait for session to update before redirecting
+      await waitForSessionUpdate();
       router.push('/');
     } else {
       const data = await res.json();

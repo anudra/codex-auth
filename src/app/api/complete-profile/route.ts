@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { Pool } from 'pg';
+//import useRouter from 'next/router';
+
+
 
 const pool = new Pool({
   user: process.env.USER,
@@ -15,6 +18,7 @@ const pool = new Pool({
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const email = session?.user?.email;
+  // const router=useRouter();
 
   if (!email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -25,6 +29,8 @@ export async function POST(req: NextRequest) {
       "UPDATE USERS SET ROLL_NO = $1, SEMESTER = $2, BRANCH = $3 WHERE USER_EMAIL = $4",
       [rollNo, semester, branch, email]
     );
+    
+    // router.push('')
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error(err);
