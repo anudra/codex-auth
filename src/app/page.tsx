@@ -4,117 +4,109 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import LoginForm from "@/components/loginpage";
+import LoginForm from "@/components/loginPage";
+import RegistrationForm from "@/components/registrationForm";
 
 export default function Home() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<{
+    rollNo?: string;
+    semester?: string;
+    branch?: string;
+    user_name?: string;
+    college_name?: string;
+  }>({});
 
-  // if we're signed in but missing profile fields, go complete-profile
+  // ----- lift form inputs into page -----
+  const [formData, setFormData] = useState({
+    rollNo: profile.rollNo || "",
+    semester: profile.semester || "",
+    branch: profile.branch || "",
+    username: profile.user_name || session?.user?.name || "",
+  });
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+  // ----------------------------------------
+
+  // fetch DB profile once authenticated
   useEffect(() => {
-    if (
-      status === "authenticated" &&
-      (!session?.user?.rollNo ||
-        !session.user.semester ||
-        !session.user.branch)
-    ) {
-      router.push("/complete-profile");
+    if (status !== "authenticated") {
+      setLoading(false);
+      return;
     }
-  }, [session, status, router]);
-
-  useEffect(() => {
-    const checkProfile = async () => {
-      if (!session?.user?.email) {
+    fetch("/api/user-profile")
+      .then((res) => res.json())
+      .then((data) => {
+        // 1) map snake_case → camelCase
+        setProfile({
+          rollNo: data.roll_no,
+          semester: data.semester,
+          branch: data.branch,
+          user_name: data.user_name,
+          college_name: data.college_name,
+        });
         setLoading(false);
-        return;
-      }
+      })
+      .catch(() => setLoading(false));
+  }, [status]);
 
-      // 1. Fetch profile from database
-      const res = await fetch("/api/user-profile");
-      if (!res.ok) {
-        setLoading(false);
-        return;
-      }
-      const dbProfile = await res.json();
+  if (status === "loading" || loading) {
+    return <div>Loading…</div>;
+  }
 
-      // 2. If DB is missing any field, redirect to complete-profile
-      if (
-        !dbProfile.roll_no ||
-        !dbProfile.semester ||
-        !dbProfile.branch
-      ) {
-        router.push("/complete-profile");
-        return;
-      }
+  if (!session) {
+    return <LoginForm />;
+  }
 
-      // 3. If session is missing but DB has, poll session until updated
-      if (
-        !session.user?.rollNo ||
-        !session.user.semester ||
-        !session.user.branch
-      ) {
-        for (let i = 0; i < 10; i++) {
-          const newSession = await update?.();
-          if (
-            newSession?.user?.rollNo &&
-            newSession.user.semester &&
-            newSession.user.branch
-          ) {
-            break;
+  // show complete-profile form if ANY missing
+  const incomplete = !profile.rollNo || !profile.semester || !profile.branch;
+  if (incomplete) {
+    return (
+      <RegistrationForm
+        rollNo={formData.rollNo}
+        semester={formData.semester}
+        branch={formData.branch}
+        username={formData.username}
+        collegename={profile.college_name || ""}
+        error=""
+        onChange={handleFormChange}
+        handleSubmit={async (e) => {
+          e.preventDefault();
+          const body = { ...formData };
+          await fetch("/api/complete-profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          // poll the session until it has the new fields
+          for (let i = 0; i < 5; i++) {
+            const s = await update?.();
+            if (s?.user?.rollNo) break;
+            await new Promise((r) => setTimeout(r, 500));
           }
-          await new Promise((r) => setTimeout(r, 500));
-        }
-      }
+          // now re‐fetch your DB profile (and map again)
+          const fresh = await fetch("/api/user-profile").then((r) => r.json());
+          setProfile({
+            rollNo: fresh.roll_no,
+            semester: fresh.semester,
+            branch: fresh.branch,
+            user_name: fresh.user_name,
+            college_name: fresh.college_name,
+          });
+          // finally redirect off the “complete” view
+          router.push("/");
+        }}
+      />
+    );
+  }
 
-      setLoading(false);
-    };
-
-    if (status === "authenticated") {
-      checkProfile();
-    } else if (status !== "loading") {
-      setLoading(false);
-    }
-  }, [session, status, router, update]);
-
-  if (loading || status === "loading") return <div>Loading…</div>;
-
+  // fully signed‐in + profile complete
   return (
-    <>
-      {session ? (
-        <>
-          <p className="text-xl font-bold underline">Signed in as {session.user?.name}</p>
-          <p>Email: {session.user?.email}</p>
-          <p>Roll No: {session.user?.rollNo}</p>
-          <p>Semester: {session.user?.semester}</p>
-          <p>Branch: {session.user?.branch}</p>
-          {session.user?.image && (
-            <Image
-              src={session.user.image}
-              alt="Profile Picture"
-              width={100}
-              height={100}
-              className="rounded-full"
-            />
-          )}
-          <button
-            onClick={() => signOut()}
-            style={{
-              marginTop: 20,
-              padding: "8px 16px",
-              background: "#DB4437",
-              color: "#fff",
-              border: "none",
-              borderRadius: 4,
-              cursor: "pointer",
-            }}
-          >
-            Sign out
-          </button>
-        </>
-      ) : (
-        <LoginForm />
-      )}
-    </>
+    router.push("/") // redirect to dashboard
   );
 }
