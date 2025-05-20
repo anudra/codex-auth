@@ -45,7 +45,7 @@ export default function LoginForm() {
             `} >
 
             <h3 className="text-2xl font-bold text-center mb-6 text-gray-800">
-                LOGIN into Codex
+                LOGIN into CodeX
             </h3>
             <button onClick={() => signIn("google")}
                     className="w-full border border-gray-400 flex items-center justify-center gap-5 py-3 rounded-full text-black font-medium hover:shadow-xl hover:duration-300 transition">
