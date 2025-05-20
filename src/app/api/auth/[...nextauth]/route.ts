@@ -52,10 +52,11 @@ export const authOptions: NextAuthOptions = {
       // Attach rollNo, semester, branch to session if available
       if (session.user?.email) {
         const { rows } = await pool.query(
-          "SELECT ROLL_NO, SEMESTER, BRANCH FROM USERS WHERE USER_EMAIL = $1",
+          "SELECT USER_NAME, ROLL_NO, SEMESTER, BRANCH FROM USERS WHERE USER_EMAIL = $1",
           [session.user.email]
         );
         if (rows[0]) {
+          session.user.name = rows[0].user_name;
           session.user.rollNo = rows[0].roll_no;
           session.user.semester = rows[0].semester;
           session.user.branch = rows[0].branch;

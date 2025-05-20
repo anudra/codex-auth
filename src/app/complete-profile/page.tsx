@@ -1,19 +1,22 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import RegistrationForm from '../../components/registrationForm';
 
 export default function CompleteProfile() {
   const [rollNo, setRollNo] = useState('');
   const [semester, setSemester] = useState('');
   const [branch, setBranch] = useState('');
+  const [username, setName] = useState("");
+  const [collegename, setCollegeName] = useState("");
+  const [loading, setLoading] = useState(true);     
   const [error, setError] = useState('');
   const router = useRouter();
   const { update } = useSession();
 
   const waitForSessionUpdate = async () => {
-    // Poll the session until all fields are present
     for (let i = 0; i < 10; i++) {
       const session = await update();
       if (
@@ -28,16 +31,23 @@ export default function CompleteProfile() {
     return false;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === 'rollNo') setRollNo(value);
+    if (name === 'semester') setSemester(value);
+    if (name === 'branch') setBranch(value);
+    if(name === 'username') setName(value);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     const res = await fetch('/api/complete-profile', {
       method: 'POST',
-      body: JSON.stringify({ rollNo, semester, branch }),
+      body: JSON.stringify({ rollNo, semester, branch, username }),
       headers: { 'Content-Type': 'application/json' },
     });
     if (res.ok) {
-      // Wait for session to update before redirecting
       await waitForSessionUpdate();
       router.push('/');
     } else {
@@ -46,36 +56,38 @@ export default function CompleteProfile() {
     }
   };
 
+  useEffect(() => {     
+    const fetchProfile = async () => {       
+      const res = await fetch("/api/user-profile");       
+      if (!res.ok) {         
+        setLoading(false);          
+        return;       
+      }       
+      const dbProfile = await res.json();       
+      setName(dbProfile.user_name);
+      setCollegeName(dbProfile.college_name);      
+      setLoading(false);     
+    };     
+    fetchProfile(); }, []);    
+    
+  if (loading) {     
+    return (       
+      <div className="flex items-center justify-center h-screen">         
+        <div className="loader"></div>       
+      </div>     
+    );   
+  }   
+
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 40 }}>
-      <h1>Complete Your Profile</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 300 }}>
-        <input
-          type="text"
-          placeholder="Roll No"
-          value={rollNo}
-          onChange={e => setRollNo(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Semester"
-          value={semester}
-          onChange={e => setSemester(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Branch"
-          value={branch}
-          onChange={e => setBranch(e.target.value)}
-          required
-        />
-        <button type="submit" style={{ padding: '8px 16px', borderRadius: 4, background: '#4285F4', color: '#fff', border: 'none' }}>
-          Submit
-        </button>
-        {error && <div style={{ color: 'red' }}>{error}</div>}
-      </form>
-    </main>
+    <RegistrationForm
+      rollNo={rollNo}
+      semester={semester}
+      branch={branch}
+      username={username}
+      collegename={collegename}
+      error={error}
+      onChange={handleChange}
+      handleSubmit={handleSubmit}
+    />
   );
 }
