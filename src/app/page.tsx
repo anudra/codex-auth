@@ -4,6 +4,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import LoginForm from "@/components/loginpage";
 
 export default function Home() {
   const { data: session, status, update } = useSession();
@@ -79,18 +80,10 @@ export default function Home() {
   if (loading || status === "loading") return <div>Loading…</div>;
 
   return (
-    <main
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: 40,
-      }}
-    >
-      <h1>Welcome to Codex Auth</h1>
+    <>
       {session ? (
         <>
-          <p>Signed in as {session.user?.name}</p>
+          <p className="text-xl font-bold underline">Signed in as {session.user?.name}</p>
           <p>Email: {session.user?.email}</p>
           <p>Roll No: {session.user?.rollNo}</p>
           <p>Semester: {session.user?.semester}</p>
@@ -120,21 +113,8 @@ export default function Home() {
           </button>
         </>
       ) : (
-        <button
-          onClick={() => signIn("google")}
-          style={{
-            marginTop: 20,
-            padding: "8px 16px",
-            background: "#4285F4",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-            cursor: "pointer",
-          }}
-        >
-          Sign in with Google
-        </button>
+        <LoginForm />
       )}
-    </main>
+    </>
   );
 }

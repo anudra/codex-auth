@@ -4,8 +4,6 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { Pool } from 'pg';
 //import useRouter from 'next/router';
 
-
-
 const pool = new Pool({
   user: process.env.USER,
   host: process.env.HOST,
@@ -22,12 +20,12 @@ export async function POST(req: NextRequest) {
 
   if (!email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { rollNo, semester, branch } = await req.json();
+  const { rollNo, semester, branch, username } = await req.json();
 
   try {
     await pool.query(
-      "UPDATE USERS SET ROLL_NO = $1, SEMESTER = $2, BRANCH = $3 WHERE USER_EMAIL = $4",
-      [rollNo, semester, branch, email]
+      "UPDATE USERS SET ROLL_NO = $1, SEMESTER = $2, BRANCH = $3, USER_NAME = $4 WHERE USER_EMAIL = $5",
+      [rollNo, semester, branch, username, email]
     );
     
     // router.push('')
