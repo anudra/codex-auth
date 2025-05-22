@@ -65,6 +65,10 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  pages: {
+    // after any sign-in / sign-up error, redirect here:
+    error: "/auth/error",
+  },
   secret: process.env.NEXTAUTH_SECRET,
 };
 
