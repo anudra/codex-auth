@@ -55,14 +55,26 @@ export default function EventsPage() {
               <b className="text-lg">{ev.event_name}</b>
               <div className="text-gray-600">{new Date(ev.event_date).toLocaleString()}</div>
               {ev.description && <div className="mb-2">{ev.description}</div>}
-              <a
-                href={ev.reg_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline"
-              >
-                Register
-              </a>
+            
+       <button
+  rel="noopener noreferrer"
+  className="text-blue-600 underline"
+  onClick={async () => {
+    const res = await fetch('/api/register-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ events_id:ev.event_name }),
+    });
+    if (res.ok) {
+      alert('Registration successful!');
+    } else {
+      alert('Registration failed. Please try again.');
+    }
+  }}
+>
+  Register
+</button>
+
             </div>
           </li>
         ))}
