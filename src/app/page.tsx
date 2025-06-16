@@ -4,7 +4,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import LoginForm from "@/components/loginPage";
+
 import RegistrationForm from "@/components/registrationForm";
 
 export default function Home() {
@@ -60,7 +60,7 @@ export default function Home() {
   }
 
   if (!session) {
-    return <LoginForm />;
+  
   }
 
   // show complete-profile form if ANY missing
