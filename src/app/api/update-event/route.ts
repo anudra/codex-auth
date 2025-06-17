@@ -12,8 +12,8 @@ const pool = new Pool({
 });
 
 async function isAdmin(email: string) {
-  const res = await pool.query("SELECT is_admin FROM users WHERE user_email=$1", [email]);
-  return res.rows[0]?.is_admin === true;
+  const res = await pool.query("SELECT role FROM users WHERE user_email=$1", [email]);
+  return res.rows[0]?.role === "admin" || res.rows[0]?.role === "superadmin";
 }
 
 // GET: List all events for dropdown
