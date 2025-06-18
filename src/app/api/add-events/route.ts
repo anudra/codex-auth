@@ -12,8 +12,8 @@ const pool = new Pool({
 });
 
 async function isAdmin(email: string) {
-  const res = await pool.query("SELECT is_admin FROM users WHERE user_email=$1", [email]);
-  return res.rows[0]?.is_admin === true;
+  const res = await pool.query("SELECT role FROM users WHERE user_email=$1", [email]);
+  return res.rows[0]?.role === "admin" || res.rows[0]?.role === "superadmin";
 }
 
 export async function POST(req: NextRequest) {
@@ -23,13 +23,12 @@ export async function POST(req: NextRequest) {
   }
   const email = session.user.email;
   if (!(await isAdmin(email))) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Forbidden : Not an Admin" }, { status: 403 });
   }
 
 
   return NextResponse.json({
     success: true,
-
     message: "Admin verified. You can now add, update, or delete events.",
   });
 }

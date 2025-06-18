@@ -72,7 +72,7 @@ export default function UpdateEventPage() {
       <h1 className="text-2xl font-bold mb-6">Update Event</h1>
       <label className="block mb-2 font-semibold">Select Event:</label>
       <select
-        className="border p-2 rounded mb-6 w-full"
+        className="border p-2 rounded mb-6 w-full text-black bg-white"
         value={selectedId}
         onChange={e => setSelectedId(e.target.value)}
       >
