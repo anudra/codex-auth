@@ -31,8 +31,7 @@ export async function GET(req: NextRequest) {
   // 2) fetch only that event’s registrations + user info
   const { rows } = await pool.query(
     `
-    SELECT r.reg_id     AS regID,
-           u.user_name AS name,
+    SELECT u.user_name AS name,
            u.user_email AS email,
            u.roll_no   AS rollNo,
            u.semester  AS semester,
@@ -51,7 +50,7 @@ export async function GET(req: NextRequest) {
   const ws = wb.addWorksheet('Registrations')
 
   ws.columns = [
-    { header: 'Reg. ID',       key: 'regID',     width: 12 },
+    { header: 'Sl No.',       key: 'slno',     width: 12 },
     { header: 'Name',          key: 'name',      width: 25 },
     { header: 'Email',         key: 'email',     width: 30 },
     { header: 'Roll No.',      key: 'rollNo',    width: 15 },
@@ -59,10 +58,10 @@ export async function GET(req: NextRequest) {
     { header: 'Branch',        key: 'branch',    width: 15 },
     { header: 'Registered At', key: 'registeredAT', width: 20 },
   ]
-
+  var num = 1
   rows.forEach(r => {
     ws.addRow({
-      regID:        r.regid,
+      slno:         num++,
       name:         r.name,
       email:        r.email,
       rollNo:       r.rollno,
