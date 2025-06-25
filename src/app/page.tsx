@@ -4,7 +4,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import LoginForm from "@/components/loginPage";
+import LoginForm from "@/components/loginpage";
 import RegistrationForm from "@/components/registrationForm";
 
 export default function Home() {
