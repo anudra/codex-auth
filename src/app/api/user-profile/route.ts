@@ -21,7 +21,7 @@ export async function GET(req: Request)
   }
 
   const { rows } = await pool.query(
-    "SELECT USER_NAME, USER_EMAIL, ROLL_NO, SEMESTER, BRANCH,COLLEGE_NAME FROM USERS WHERE USER_EMAIL = $1",
+    "SELECT USER_NAME, USER_EMAIL, ROLL_NO, SEMESTER, BRANCH,COLLEGE_NAME,profile_pic FROM USERS WHERE USER_EMAIL = $1",
     [session.user.email]
   );
 

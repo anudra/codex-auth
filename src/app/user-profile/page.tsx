@@ -1,10 +1,14 @@
 "use client";
-
+import { useRouter } from "next/navigation"; // For Next.js App Router
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import RegisteredEvents from "../../components/RegisteredEvents"; // if .tsx
 // adjust path if needed
+
+
+
+
 
 
 
@@ -18,6 +22,7 @@ type UserData = {
 };
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { data: session, status } = useSession();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,7 +128,8 @@ export default function ProfilePage() {
             </div>
 
             {/* Edit Profile Button */}
-            <button className="mt-6 px-3 py-1.5 bg-[#00D0FF] text-white text-sm font-medium rounded-md flex items-center gap-2 hover:bg-[#5dcffb] transition w-fit">
+            <button   onClick={() => router.push("/edit-profile")}
+            className="mt-6 px-3 py-1.5 bg-[#00D0FF] text-white text-sm font-medium rounded-md flex items-center gap-2 hover:bg-[#5dcffb] transition w-fit">
               <Image src="/edit_icon.svg" alt="Edit Icon" width={18} height={18} />
               <p className="font-medium text-white">Edit Profile</p>
             </button>
