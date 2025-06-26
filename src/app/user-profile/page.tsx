@@ -4,10 +4,6 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import RegisteredEvents from "../../components/RegisteredEvents"; // if .tsx
-// adjust path if needed
-
-
-
 
 
 
@@ -19,6 +15,7 @@ type UserData = {
   semester: string;
   branch: string;
   college_name: string;
+   profile_pic?: string;
 };
 
 export default function ProfilePage() {
@@ -78,17 +75,17 @@ export default function ProfilePage() {
             {userData?.user_name || user?.name || "Your Name"}
           </h2>
 
-          {user?.image && (
-            <div className="w-36 h-36 mt-4">
-              <Image
-                src={user.image}
-                alt="Profile picture"
-                width={144}
-                height={144}
-                className="rounded-full object-cover"
-              />
-            </div>
-          )}
+         {(userData?.profile_pic || user?.image) && (
+  <div className="w-36 h-36 mt-4">
+    <Image
+      src={userData?.profile_pic || user?.image}
+      alt="Profile picture"
+      width={144}
+      height={144}
+      className="rounded-full object-cover"
+    />
+  </div>
+)}
         </div>
 
         {/* Right Details Box */}

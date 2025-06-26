@@ -27,7 +27,7 @@ export async function PUT(req: NextRequest) {
       semester,
       branch,
       college_name,
-      user_image, // optional: if you're editing image too
+      profile_pic, // optional: if you're editing image too
     } = await req.json();
 
     await pool.query(
@@ -36,11 +36,12 @@ export async function PUT(req: NextRequest) {
            roll_no = $2,
            semester = $3,
            branch = $4,
-           college_name = $5
-       WHERE user_email = $6`,
-      [user_name, roll_no, semester, branch, college_name, session.user.email]
+           college_name = $5,
+           profile_pic=$6
+       WHERE user_email = $7`,
+      [user_name, roll_no, semester, branch, college_name,profile_pic, session.user.email]
     );
-
+console.log(profile_pic);
     return NextResponse.json({ message: "Profile updated successfully" });
   } catch (err) {
     console.error("PUT /api/edit-profile error:", err);
