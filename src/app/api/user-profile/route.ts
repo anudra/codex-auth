@@ -12,14 +12,16 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-export async function GET(req: Request) {
+export async function GET(req: Request) 
+{
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.email) {
+  if (!session || !session.user?.email)
+  {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { rows } = await pool.query(
-    "SELECT USER_NAME, USER_EMAIL, ROLL_NO, SEMESTER, BRANCH,COLLEGE_NAME,ROLE FROM USERS WHERE USER_EMAIL = $1",
+    "SELECT USER_NAME, USER_EMAIL, ROLL_NO, SEMESTER, BRANCH,COLLEGE_NAME, PROFILE_PIC FROM USERS WHERE USER_EMAIL = $1",
     [session.user.email]
   );
 
@@ -29,3 +31,4 @@ export async function GET(req: Request) {
 
   return NextResponse.json(rows[0]);
 }
+
