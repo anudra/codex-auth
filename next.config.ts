@@ -5,7 +5,8 @@ const nextConfig: NextConfig = {
      domains: [
       'lh3.googleusercontent.com', // for Google avatars
       'i.ibb.co',                  // for your custom avatars
-    ],// allow Google avatars
+      "drive.google.com" // for events related images hosting
+    ]
   }
 };
 

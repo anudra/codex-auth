@@ -12,7 +12,6 @@ type Event = {
 };
 
 export default function UpdateEventPage() {
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [eventData, setEventData] = useState<Partial<Event>>({});
@@ -21,9 +20,6 @@ export default function UpdateEventPage() {
 
   // Check admin and fetch events for dropdown
   useEffect(() => {
-    fetch("/api/add-events", { method: "POST" })
-      .then(res => res.json())
-      .then(data => setIsAdmin(data.success === true));
     fetch("/api/update-event")
       .then(res => res.json())
       .then(data => setEvents(data.events));
@@ -63,9 +59,6 @@ export default function UpdateEventPage() {
       setMessage("Failed to update event.");
     }
   };
-
-  if (isAdmin === null) return <div className="p-8">Checking admin status...</div>;
-  if (!isAdmin) return <div className="p-8 text-red-600 font-bold">Unauthorized: Only admins can update events.</div>;
 
   return (
     <div className="max-w-xl mx-auto p-8">
@@ -136,7 +129,7 @@ export default function UpdateEventPage() {
       />
       Event Visibility
     </label>
-    <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+    <button type="submit" className="bg-cyan-400 text-white font-semibold shadow-md hover:shadow-lg px-4 py-2 rounded hover:bg-cyan-500 transition">
       Update Event
     </button>
     {message && <div className="mt-2">{message}</div>}
