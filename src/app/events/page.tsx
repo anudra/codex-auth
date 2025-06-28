@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import UpcomingEventsCarousel from "@/components/UpEventsCarousel";
 import PastEventsList from "@/components/PastEventsList";
 import AdminEventControls from "@/components/AdminEventControls";
-import LoginForm from "@/components/loginPage";
 
 interface Event {
   event_id: number;

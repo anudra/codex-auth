@@ -6,8 +6,9 @@ export default function AddEventPage() {
   const [form, setForm] = useState({
     event_name: "",
     event_date: "",
-    reg_link: "",
+    event_description: "",
     poster: "",
+    whatsapp_link: "",
     duration: "",
   });
   const [message, setMessage] = useState("");
@@ -24,6 +25,7 @@ export default function AddEventPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        action: "insert",
         ...form,
         duration: Number(form.duration),
       }),
@@ -57,9 +59,9 @@ export default function AddEventPage() {
           className="border p-2 rounded"
         />
         <input
-          name="reg_link"
-          placeholder="Registration Link"
-          value={form.reg_link}
+          name="event_description"
+          placeholder="Event Description"
+          value={form.event_description}
           onChange={handleChange}
           required
           className="border p-2 rounded"
@@ -68,6 +70,14 @@ export default function AddEventPage() {
           name="poster"
           placeholder="Poster Image Link"
           value={form.poster}
+          onChange={handleChange}
+          required
+          className="border p-2 rounded"
+        />
+        <input
+          name="whatsapp_link"
+          placeholder="WhatsApp Group Chat Link"
+          value={form.whatsapp_link}
           onChange={handleChange}
           required
           className="border p-2 rounded"

@@ -6,8 +6,9 @@ type Event = {
   event_name: string;
   event_date: string;
   duration: number;
-  reg_link: string;
+  event_description: string;
   poster: string;
+  whatsapp_link?: string;
   visibility?: boolean;
 };
 
@@ -18,9 +19,9 @@ export default function UpdateEventPage() {
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  // Check admin and fetch events for dropdown
+  //fetch events for dropdown
   useEffect(() => {
-    fetch("/api/update-event")
+    fetch("/api/events")
       .then(res => res.json())
       .then(data => setEvents(data.events));
   }, []);
@@ -28,10 +29,10 @@ export default function UpdateEventPage() {
   // Fetch event details when dropdown changes
   useEffect(() => {
     if (selectedId) {
-      fetch("/api/update-event", {
+      fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: selectedId }),
+        body: JSON.stringify({ action: "fetch", event_id: selectedId }),
       })
         .then(res => res.json())
         .then(data => setEventData(data.event));
@@ -44,10 +45,11 @@ export default function UpdateEventPage() {
     setEventData({ ...eventData, [e.target.name]: e.target.value });
   };
 
+  // update event details when clicked update
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
-    const res = await fetch("/api/update-event", {
+    const res = await fetch("/api/events", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...eventData, event_id: selectedId, duration: Number(eventData.duration) }),
@@ -96,9 +98,9 @@ export default function UpdateEventPage() {
       className="border p-2 rounded"
     />
     <input
-      name="reg_link"
-      placeholder="Registration Link"
-      value={eventData.reg_link || ""}
+      name="event_description"
+      placeholder="Event Description"
+      value={eventData.event_description || ""}
       onChange={handleChange}
       required
       className="border p-2 rounded"
@@ -107,6 +109,14 @@ export default function UpdateEventPage() {
       name="poster"
       placeholder="Poster Image Link"
       value={eventData.poster || ""}
+      onChange={handleChange}
+      required
+      className="border p-2 rounded"
+    />
+    <input
+      name="whatsapp_link"
+      placeholder="Whatsapp Group Chat Link"
+      value={eventData.whatsapp_link || ""}
       onChange={handleChange}
       required
       className="border p-2 rounded"
