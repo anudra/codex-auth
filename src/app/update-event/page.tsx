@@ -6,25 +6,22 @@ type Event = {
   event_name: string;
   event_date: string;
   duration: number;
-  reg_link: string;
+  event_description: string;
   poster: string;
+  whatsapp_link?: string;
   visibility?: boolean;
 };
 
 export default function UpdateEventPage() {
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [eventData, setEventData] = useState<Partial<Event>>({});
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  // Check admin and fetch events for dropdown
+  //fetch events for dropdown
   useEffect(() => {
-    fetch("/api/add-events", { method: "POST" })
-      .then(res => res.json())
-      .then(data => setIsAdmin(data.success === true));
-    fetch("/api/update-event")
+    fetch("/api/events")
       .then(res => res.json())
       .then(data => setEvents(data.events));
   }, []);
@@ -32,10 +29,10 @@ export default function UpdateEventPage() {
   // Fetch event details when dropdown changes
   useEffect(() => {
     if (selectedId) {
-      fetch("/api/update-event", {
+      fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: selectedId }),
+        body: JSON.stringify({ action: "fetch", event_id: selectedId }),
       })
         .then(res => res.json())
         .then(data => setEventData(data.event));
@@ -48,10 +45,11 @@ export default function UpdateEventPage() {
     setEventData({ ...eventData, [e.target.name]: e.target.value });
   };
 
+  // update event details when clicked update
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
-    const res = await fetch("/api/update-event", {
+    const res = await fetch("/api/events", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...eventData, event_id: selectedId, duration: Number(eventData.duration) }),
@@ -63,9 +61,6 @@ export default function UpdateEventPage() {
       setMessage("Failed to update event.");
     }
   };
-
-  if (isAdmin === null) return <div className="p-8">Checking admin status...</div>;
-  if (!isAdmin) return <div className="p-8 text-red-600 font-bold">Unauthorized: Only admins can update events.</div>;
 
   return (
     <div className="max-w-xl mx-auto p-8">
@@ -103,9 +98,9 @@ export default function UpdateEventPage() {
       className="border p-2 rounded"
     />
     <input
-      name="reg_link"
-      placeholder="Registration Link"
-      value={eventData.reg_link || ""}
+      name="event_description"
+      placeholder="Event Description"
+      value={eventData.event_description || ""}
       onChange={handleChange}
       required
       className="border p-2 rounded"
@@ -114,6 +109,14 @@ export default function UpdateEventPage() {
       name="poster"
       placeholder="Poster Image Link"
       value={eventData.poster || ""}
+      onChange={handleChange}
+      required
+      className="border p-2 rounded"
+    />
+    <input
+      name="whatsapp_link"
+      placeholder="Whatsapp Group Chat Link"
+      value={eventData.whatsapp_link || ""}
       onChange={handleChange}
       required
       className="border p-2 rounded"
@@ -136,7 +139,7 @@ export default function UpdateEventPage() {
       />
       Event Visibility
     </label>
-    <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+    <button type="submit" className="bg-cyan-400 text-white font-semibold shadow-md hover:shadow-lg px-4 py-2 rounded hover:bg-cyan-500 transition">
       Update Event
     </button>
     {message && <div className="mt-2">{message}</div>}

@@ -79,7 +79,7 @@ export default function RegistrationForm({
             >
               <input
                 type="text"
-                name="username"
+                name="user_name"
                 placeholder="Username"
                 value={username}
                 onChange={onChange}

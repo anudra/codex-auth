@@ -1,172 +1,207 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import UpcomingEventsCarousel from "@/components/UpEventsCarousel";
+import PastEventsList from "@/components/PastEventsList";
+import AdminEventControls from "@/components/AdminEventControls";
 
-type Event = {
+interface Event {
   event_id: number;
   event_name: string;
-  event_description?: string;
   event_date: string;
-  reg_link: string;
-  poster_link: string;
-};
+  duration: number;
+  venue: string;
+  poster: string;
+  visibility: boolean;
+  event_description: string;
+  participants: number;
+}
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [registeredEvents, setRegisteredEvents] = useState<number[]>([]);
-  const [downloadId, setDownloadId] = useState<string>(""); // always keep as string
-  const [showDownloader, setShowDownloader] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Fetch events
+  // Fetch events from API
   useEffect(() => {
-    fetch("/api/events")
-      .then((res) => res.json())
-      .then((data) => setEvents(data.events));
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch("/api/events");
+        if (response.ok) {
+          const data = await response.json();
+          setEvents(data.events || []);
+        } else {
+          console.error("Failed to fetch events");
+        }
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
   }, []);
 
-  // Fetch user's registered event ids
+  // Fetch registered events
   useEffect(() => {
-    fetch("/api/event-registration")
-      .then((res) => res.json())
-      .then((data) => setRegisteredEvents(data.eventIds || []));
+    const fetchRegisteredEvents = async () => {
+      try {
+        const response = await fetch("/api/event-registration");
+        if (response.ok) {
+          const data = await response.json();
+          setRegisteredEvents(data.eventIds || []);
+        } else if (response.status === 401) {
+          return;
+        } else {
+          console.error("Failed to fetch registered events");
+        }
+      } catch (error) {
+        console.error("Error fetching registered events:", error);
+      }
+    };
+
+    fetchRegisteredEvents();
   }, []);
 
-  // Register handle function
+  // Fetch admin status
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch("/api/user-profile");
+        if (response.ok) {
+          const data = await response.json();
+          setIsAdmin(data.role === "admin" || data.role === "superadmin");
+        } else if(response.status === 401) {
+            return;
+        } else {
+          console.error("Failed to fetch user profile");
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  // Handle event registration
   const handleRegister = async (event_id: number, event_name: string) => {
-    const res = await fetch("/api/event-registration", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_id, event_name }),
-    });
-    if (res.status === 400) {
-      alert("You are already registered for this event.");
-    } else if (res.ok) {
-      setRegisteredEvents((prev) => [...prev, event_id]);
-      alert("Registration successful!");
-    } else {
+    try {
+      const response = await fetch("/api/event-registration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id, event_name }),
+      });
+
+      if (response.ok) {
+        setRegisteredEvents((prev) => [...prev, event_id]);
+        alert("Registration successful!");
+      } else if(response.status === 401) {
+        if (window.confirm("Not logged in..!! Please log in to register for events. Click OK to go to login.")) {
+          router.push("/");
+        }
+      } else {
+        alert("Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error registering for event:", error);
       alert("Registration failed. Please try again.");
     }
   };
 
-  const handleDownload = async () => {
-  if (!downloadId) return
-  try {
-    const ev = events.find(e => e.event_id.toString() === downloadId)!
-    const res = await fetch(
-      `/api/export-registration?event_id=${downloadId}`
-    )
-    const blob = await res.blob()
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${ev.event_name}_registrations.xlsx`
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    window.URL.revokeObjectURL(url)
-    } catch (err) {
-    alert('Download failed')
-    } finally {
-      setShowDownloader(false);
-      setDownloadId("");
-    }
-  };
+  // Split events into upcoming and past
+  const { upcomingEvents, pastEvents } = useMemo(() => {
+    const now = new Date();
+    const upcoming = events
+      .filter((event) => new Date(event.event_date) >= now && event.visibility)
+      .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+    
+    const past = events
+      .filter((event) => new Date(event.event_date) < now && event.visibility)
+      .sort((a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime());
 
-  return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl">Events</h1>
-        <div className="flex gap-2">
-          <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            onClick={() => router.push("/add-events")}
-          >
-            Add Event
-          </button>
-          <button
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-            onClick={() => router.push("/update-event")}
-          >
-            Update Event
-          </button>
+    return { upcomingEvents: upcoming, pastEvents: past };
+  }, [events]);
 
-          {!showDownloader ? (
-            <button
-              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
-              onClick={() => setShowDownloader(true)}
-            >
-              Download Registrations
-            </button>
-          ) : (
-            <div className="flex gap-2 items-center">
-              <select
-                className="border px-2 py-2 rounded bg-white text-black"
-                value={downloadId}
-                onChange={(e) => setDownloadId(e.target.value)}
-              >
-                <option value="">Choose event…</option>
-                {events.map((ev) => (
-                  <option key={ev.event_id} value={ev.event_id.toString()}>
-                    {ev.event_name}
-                  </option>
-                ))}
-              </select>
-              <button
-                className="bg-purple-700 text-white px-4 py-2 rounded disabled:opacity-50"
-                onClick={handleDownload}
-                disabled={!downloadId}
-              >
-                Go
-              </button>
-              <button
-                className="text-gray-600 px-2 py-2"
-                onClick={() => {
-                  setShowDownloader(false);
-                  setDownloadId("");
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          )}
+  if (loading) {
+    return (
+      <div className="bg-gray-100 min-h-screen">
+        <div className="relative w-full h-48 md:h-56 bg-gradient-to-r from-blue-600 to-purple-600">
+          <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">All Events</h1>
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading events...</p>
+          </div>
         </div>
       </div>
-      <ul className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {events.map((ev) => (
-          <li
-            key={ev.event_id}
-            className="border p-4 rounded shadow flex flex-col"
-          >
-            <img
-              src={ev.poster_link}
-              alt={ev.event_name}
-              className="w-full h-48 object-cover mb-2 rounded"
-              onError={(e) => (e.currentTarget.src = "/no-image.png")}
-            />
-            <div className="flex-1">
-              <b className="text-lg">{ev.event_name}</b>
-              <div className="text-gray-600">
-                {new Date(ev.event_date).toLocaleString()}
-              </div>
-              {ev.event_description && (
-                <div className="mb-2">{ev.event_description}</div>
-              )}
-              {registeredEvents.includes(ev.event_id) ? (
-                <p className="text-gray-500 underline">Registered</p>
-              ) : (
-                <button
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline"
-                  onClick={() => handleRegister(ev.event_id, ev.event_name)}
-                >
-                  Register
-                </button>
-              )}
+    );
+  }
+
+  return (
+    <div className="bg-gray-100 min-h-screen">
+      {/* Header */}
+      <div className="relative w-full h-48 md:h-56 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">All Events</h1>
+          <p className="text-white text-lg opacity-90">
+            Discover and join our exciting events
+          </p>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Upcoming Events Carousel */}
+        {upcomingEvents.length > 0 && (
+          <UpcomingEventsCarousel
+            events={upcomingEvents}
+            registeredEvents={registeredEvents}
+            onRegister={handleRegister}
+          />
+        )}
+
+        {/* Past Events Section with Admin Controls */}
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Past Events</h2>
+            <p className="text-gray-600">
+              Browse through our previous events and see what you might have missed
+            </p>
+          </div>
+
+          {/* Admin Controls Component */
+             isAdmin && <AdminEventControls events={events} /> 
+          } 
+        </div>
+
+        {/* Past Events List */}
+        <PastEventsList 
+          events={pastEvents} 
+          registeredEvents={registeredEvents} 
+        />
+
+        {/* No Events Message */}
+        {events.length === 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+            <div className="mb-4">
+              <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V6a2 2 0 012-2h4a2 2 0 012 2v1m-6 0h8m-8 0H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2" />
+              </svg>
             </div>
-          </li>
-        ))}
-      </ul>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Events Available</h3>
+            <p className="text-gray-600 mb-4">
+              There are currently no events to display. Check back later for upcoming events!
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
