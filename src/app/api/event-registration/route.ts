@@ -19,12 +19,14 @@ export async function GET(req: NextRequest) {
   if (!session || !session.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  
 
   // Get user_id from DB using session email
   const userRes = await pool.query(
     "SELECT user_id FROM users WHERE user_email = $1",
     [session.user.email]
   );
+ 
   if (!userRes.rows[0]) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
@@ -35,8 +37,22 @@ export async function GET(req: NextRequest) {
     "SELECT event_id FROM registrations WHERE user_id = $1",
     [user_id]
   );
-  const eventIds = regRes.rows.map((row) => row.event_id);
-  return NextResponse.json({ eventIds });
+
+
+  const eventIds = regRes.rows.map(r => r.event_id);
+
+  if (!eventIds.length) {
+    return NextResponse.json({ events: [] });
+  }
+
+  const eventsRes = await pool.query(
+    `SELECT event_id, event_name, event_date, venue, whatsapp_link 
+     FROM events 
+     WHERE event_id = ANY($1::uuid[])`,
+    [eventIds]
+  );
+
+  return NextResponse.json({ events: eventsRes.rows });
 }
 
 // POST: Register user for an event

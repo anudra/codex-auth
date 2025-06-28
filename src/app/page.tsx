@@ -4,8 +4,9 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import LoginForm from "@/components/loginPage";
+import LoginForm from "@/components/loginpage";
 import RegistrationForm from "@/components/registrationForm";
+import RegisteredEvents from "@/components/RegisteredEvents";
 
 export default function Home() {
   const { data: session, status, update } = useSession();
@@ -16,7 +17,7 @@ export default function Home() {
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      await fetch("/api/complete-profile", {
+      await fetch("/api/user-profile", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form),
       });
       await update?.();
@@ -52,8 +53,8 @@ export default function Home() {
           session?.user &&
           (data.email !== session.user.email || data.user_name !== session.user.name || data.image !== session.user.image)
         ) {
-          await fetch("/api/update-profile", {
-            method: "POST",
+          await fetch("/api/user-profile", {
+            method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               email: session.user.email, user_name: session.user.name, image: session.user.image,
@@ -115,6 +116,8 @@ export default function Home() {
             Sign out
           </button>
         </div>
+         <RegisteredEvents />
       </div>
+      
   );
 }
