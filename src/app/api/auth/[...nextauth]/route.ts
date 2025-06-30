@@ -60,6 +60,7 @@ export const authOptions: NextAuthOptions = {
           session.user.rollNo = rows[0].roll_no;
           session.user.semester = rows[0].semester;
           session.user.branch = rows[0].branch;
+          session.user.image=rows[0].profile_pic;
         }
       }
       return session;
