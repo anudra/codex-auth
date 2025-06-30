@@ -24,7 +24,8 @@ export default function Home() {
       const fresh = await fetch("/api/user-profile").then(r => r.json());
       setProfile({
       rollNo: fresh.roll_no, semester: fresh.semester, branch: fresh.branch, user_name: fresh.user_name, 
-      college_name: fresh.college_name, email: fresh.email, image: fresh.image, role: fresh.role,
+      college_name: fresh.college_name, email: fresh.user_email,
+  image: fresh.profile_pic,
       });
   }
   // Sync form with profile/session
@@ -49,23 +50,12 @@ export default function Home() {
       .then((res) => res.json())
       .then(async (data) => {
         // Update DB with Google info if missing
-        if (
-          session?.user &&
-          (data.email !== session.user.email || data.user_name !== session.user.name || data.image !== session.user.image)
-        ) {
-          await fetch("/api/user-profile", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: session.user.email, user_name: session.user.name, image: session.user.image,
-            }),
-          });
-        }
+     
         setProfile({
           rollNo: data.roll_no, semester: data.semester,
           branch: data.branch, user_name: data.user_name,
-          college_name: data.college_name, email: data.email,
-          image: data.image,
+          college_name: data.college_name, email: data.user_email,     // ✅ Fixed: use user_email
+        image: data.profile_pic,
         });
         setLoading(false);
       })
@@ -96,15 +86,16 @@ export default function Home() {
     <div className="flex-1 flex flex-col items-center justify-center">
         <div className="max-w-md w-full rounded-xl shadow p-8">
           <h1 className="text-2xl font-bold mb-4">Welcome, {session?.user?.name}</h1>
-          {session?.user?.image && (
-            <Image
-              src={session.user.image}
-              alt="Avatar"
-              width={80}
-              height={80}
-              className="rounded-full mb-4"
-            />
-          )}
+       
+          {(profile.image || session?.user?.image) && (
+      <Image
+     src={profile.image || session?.user?.image || ""}
+     alt="Avatar"
+    width={80}
+    height={80}
+    className="rounded-full mb-4"
+     />
+    )}
           <p className="mb-1"><b>Email:</b> {session?.user?.email}</p>
           <p className="mb-1"><b>Roll No:</b> {profile.rollNo}</p>
           <p className="mb-1"><b>Semester:</b> {profile.semester}</p>

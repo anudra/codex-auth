@@ -30,6 +30,7 @@ export default function RootLayout({
           <Link href="/" className="font-bold text-cyan-600 text-xl">CodeX</Link>
           <Link href="/" className="px-3 py-1 rounded hover:bg-cyan-500">User Profile</Link>
           <Link href="/events" className="px-3 py-1 rounded hover:bg-cyan-500">Manage Events</Link>
+          <Link href="/user-dashboard" className="px-3 py-1 rounded hover:bg-cyan-500">User Dashboard</Link>
           <div className="flex-1" />
         </nav>
         <AuthProvider>{children}</AuthProvider>
