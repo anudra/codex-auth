@@ -19,14 +19,17 @@ const avatars = [
 
 function AvatarSelector({ onSelect }: { onSelect: (url: string) => void }) {
   return (
-    <div className="grid grid-cols-4 gap-4 bg-white p-4 border border-[#7CD2FDBF] rounded-md shadow-md mt-4 max-w-md mx-auto">
+    <div className="grid grid-cols-4 gap-3 sm:gap-4 bg-white/90 backdrop-blur-sm p-4 sm:p-6 border border-gray-200 rounded-2xl shadow-xl mt-6 max-w-sm sm:max-w-md mx-auto">
+      <div className="col-span-4 text-center mb-2">
+        <p className="text-gray-600 font-medium text-sm">Choose Your Avatar</p>
+      </div>
       {avatars.map((url, index) => (
         <img
           key={index}
           src={url}
           alt={`Avatar ${index + 1}`}
           onClick={() => onSelect(url)}
-          className="w-20 h-20 rounded-full object-cover cursor-pointer border-2 hover:border-blue-500 transition"
+          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover cursor-pointer border-3 border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all duration-200 transform hover:scale-105"
         />
       ))}
     </div>
@@ -34,7 +37,7 @@ function AvatarSelector({ onSelect }: { onSelect: (url: string) => void }) {
 }
 
 export default function EditProfile() {
- const { update } = useSession(); 
+  const { update } = useSession(); 
   const router = useRouter(); 
 
   const [formData, setFormData] = useState({
@@ -48,6 +51,7 @@ export default function EditProfile() {
   });
 
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,6 +66,8 @@ export default function EditProfile() {
         }));
       } catch (err) {
         console.error("Failed to fetch profile data", err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -112,124 +118,184 @@ export default function EditProfile() {
     setShowAvatarSelector(false);
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen px-6 py-10 bg-white font-inter">
-      <div className="text-left mb-6">
-        <h1 className="text-4xl font-bold text-[#0A4456] flex items-center gap-2">
-          Edit Profile
-          <Image src="/person.svg" width={28} height={28} alt="Edit" />
-        </h1>
-        <p className="text-[15px] font-medium text-[rgba(26,101,124,0.77)] mt-1">
-          Edit all your profile details here
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 font-inter overflow-x-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-100/60 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-100/60 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="w-full h-[2px] bg-[rgba(124,210,253,0.75)] rounded-md mb-8" />
-
-      <div className="bg-white border border-[#7CD2FDBF] rounded-md shadow-md p-6 max-w-4xl mx-auto">
-        <div className="flex justify-center relative mb-6 w-[120px] mx-auto">
-          <Image
-            src={formData.profile_pic}
-            alt="Avatar"
-            width={120}
-            height={120}
-            className="rounded-full object-cover"
-          />
-          <button
-            type="button"
-            onClick={() => setShowAvatarSelector((prev) => !prev)}
-            className="absolute top-[82%] left-[82%] -translate-x-1/2 -translate-y-1/2 bg-[#00D0FF] hover:bg-[#1ecfff] transition border-2 border-white p-1 rounded-full shadow-md group"
-            title="Edit Photo"
-          >
-            <Image
-              src="/edit_icon.svg"
-              alt="Edit Icon"
-              width={22}
-              height={22}
-              className="group-hover:scale-110 transition"
-            />
-          </button>
+      <div className="relative z-10 px-4 sm:px-6 py-6 sm:py-10 w-full max-w-full">
+        {/* Header */}
+        <div className="text-left mb-6 sm:mb-8">
+          <h1 className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-3xl sm:text-5xl font-bold text-gray-900 mb-2">
+            <span>Edit Profile</span>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-sky-300 to-cyan-300 rounded-xl flex items-center justify-center shadow-lg">
+              <Image src="/person.svg" alt="Person Icon" width={20} height={20} className="filter invert sm:w-6 sm:h-6" />
+            </div>
+          </h1>
+          <p className="text-gray-600 text-base sm:text-lg font-medium">
+            Edit all your profile details here
+          </p>
         </div>
 
-        {showAvatarSelector && <AvatarSelector onSelect={handleAvatarSelect} />}
+        {/* Gradient line */}
+        <div className="w-full h-1 bg-gradient-to-r from-sky-400 via-cyan-400 to-transparent rounded-full mb-8 sm:mb-12 shadow-sm"></div>
 
-        <div className="text-sm text-[#1f1f1f] mt-6">
-          <h3 className="text-lg font-semibold text-[#0A4456] mb-4 underline underline-offset-4">
-            Your Details
-          </h3>
+        {/* Edit Profile Content */}
+        <div className="w-full max-w-5xl mx-auto">
+          <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300 w-full">
+            
+            {/* Profile Picture Section */}
+            <div className="text-center mb-8">
+              <div className="relative inline-block mb-4">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 p-1 shadow-lg"> 
+                  <div className="w-full h-full rounded-full overflow-hidden bg-white">
+                    <Image
+                      src={formData.profile_pic}
+                      alt="Profile picture"
+                      width={128}
+                      height={128}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarSelector((prev) => !prev)}
+                  className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-r from-sky-300 to-cyan-200 hover:from-sky-400 hover:to-cyan-300 transition-all border-4 border-white rounded-full shadow-lg group flex items-center justify-center transform hover:scale-110"
+                  title="Change Avatar"
+                >
+                  <Image
+                    src="/edit_icon.svg"
+                    alt="Edit Icon"
+                    width={18}
+                    height={18}
+                    className="filter invert"
+                  />
+                </button>
+              </div>
+              <p className="text-gray-600 text-sm font-medium">Click the edit button to change your avatar</p>
+            </div>
 
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            <div>
-              <label className="text-gray-500">Email ID :</label>
-              <input
-                type="email"
-                name="user_email"
-                value={formData.user_email}
-                disabled
-                className="w-full mt-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm bg-gray-100 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="text-gray-500">Semester :</label>
-              <input
-                type="text"
-                name="semester"
-                value={formData.semester}
-                onChange={handleChange}
-                className="w-full mt-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm bg-white"
-              />
-            </div>
-            <div>
-              <label className="text-gray-500">Name :</label>
-              <input
-                type="text"
-                name="user_name"
-                value={formData.user_name}
-                onChange={handleChange}
-                className="w-full mt-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm bg-white"
-              />
-            </div>
-            <div>
-              <label className="text-gray-500">Branch :</label>
-              <input
-                type="text"
-                name="branch"
-                value={formData.branch}
-                onChange={handleChange}
-                className="w-full mt-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm bg-white"
-              />
-            </div>
-            <div>
-              <label className="text-gray-500">Roll No :</label>
-              <input
-                type="text"
-                name="roll_no"
-                value={formData.roll_no}
-                onChange={handleChange}
-                className="w-full mt-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm bg-white"
-              />
-            </div>
-            <div>
-              <label className="text-gray-500">College Name :</label>
-              <input
-                type="text"
-                name="college_name"
-                value={formData.college_name}
-                onChange={handleChange}
-                className="w-full mt-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm bg-white"
-              />
-            </div>
-          </div>
+            {showAvatarSelector && <AvatarSelector onSelect={handleAvatarSelect} />}
 
-          <div className="flex justify-center mt-6">
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-[#00D0FF] hover:bg-[#5dcffb] transition text-white text-sm font-medium rounded-md flex items-center gap-2"
-            >
-              <Image src="/save.svg" alt="Save" width={18} height={18} />
-              Save Profile
-            </button>
+            {/* Form Section */}
+            <div className="mt-8">
+              <div className="flex items-center gap-3 mb-8">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Your Details</h3>
+                <div className="flex-1 h-px bg-gradient-to-r from-sky-300 to-transparent"></div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Email ID</label>
+                  <input
+                    type="email"
+                    name="user_email"
+                    value={formData.user_email}
+                    disabled
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed font-medium"
+                  />
+                  <p className="text-xs text-gray-400">Email cannot be changed</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Name</label>
+                  <input
+                    type="text"
+                    name="user_name"
+                    value={formData.user_name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white  hover:border-sky-300 focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all duration-200 font-medium"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Roll Number</label>
+                  <input
+                    type="text"
+                    name="roll_no"
+                    value={formData.roll_no}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white hover:border-sky-300 focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all duration-200 font-medium"
+                    placeholder="Enter your roll number"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Branch</label>
+                  <input
+                    type="text"
+                    name="branch"
+                    value={formData.branch}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white hover:border-sky-300 focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all duration-200 font-medium"
+                    placeholder="Enter your branch"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Semester</label>
+                  <input
+                    type="text"
+                    name="semester"
+                    value={formData.semester}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white hover:border-sky-300 focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all duration-200 font-medium"
+                    placeholder="Enter your semester"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-gray-500 text-sm font-semibold uppercase tracking-wider">College Name</label>
+                  <input
+                    type="text"
+                    name="college_name"
+                    value={formData.college_name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white hover:border-sky-300 focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all duration-200 font-medium"
+                    placeholder="Enter your college name"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
+                <button
+                  type="button"
+                  onClick={() => router.push("/user-dashboard")}
+                  className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="gray" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Cancel
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  className="px-8 py-3 bg-gradient-to-r from-sky-300 to-cyan-300 hover:from-sky-400 hover:to-cyan-300 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                >
+                  <Image src="/save.svg" alt="Save" width={17} height={17} />
+                  Save Profile
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -53,11 +53,11 @@ export async function PUT(req: NextRequest) {
   if (!session?.user?.email || !(await isAdmin(session.user.email))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
-  const { event_name, event_date, event_description, duration, whatsapp_link, poster, event_id } = await req.json();
+  const { event_name, event_date, event_description, duration, whatsapp_link, poster, visibility, event_id } = await req.json();
   await pool.query(
-    `UPDATE events SET event_name=$1, event_date=$2, event_description=$3, duration=$4, whatsapp_link=$5, poster=$6, updated_at=NOW()
-     WHERE event_id=$7`,
-    [event_name, event_date, event_description, duration, whatsapp_link, poster, event_id ]
+    `UPDATE events SET event_name=$1, event_date=$2, event_description=$3, duration=$4, whatsapp_link=$5, poster=$6, visibility=$7, updated_at=NOW()
+     WHERE event_id=$8`,
+    [event_name, event_date, event_description, duration, whatsapp_link, poster, visibility, event_id ]
   );
   return NextResponse.json({ success: true });
 }

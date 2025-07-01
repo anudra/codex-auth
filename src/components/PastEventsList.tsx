@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import PastEventCard from "./PastEventCard";
 import FilterSection from "./FilterSection";
+import Pagination from "./Pagination";
 
 interface Event {
   event_id: number;
@@ -21,26 +22,22 @@ interface PastEventsListProps {
   registeredEvents: number[];
 }
 
-export default function PastEventsList({
-  events,
-  registeredEvents,
-}: PastEventsListProps) {
+export default function PastEventsList({ events, registeredEvents }: PastEventsListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
   const [currentPage, setCurrentPage] = useState(1);
-  
-  const eventsPerPage = 5;
+  const eventsPerPage = 3;
 
   // Get available years from events
   const availableYears = useMemo(() => {
     const years = Array.from(
       new Set(events.map(event => new Date(event.event_date).getFullYear()))
     );
-    return years.sort((a, b) => b - a); // Sort descending (newest first)
+    return years.sort((a, b) => b - a); // Sort desc
   }, [events]);
 
-  // Filter and sort events
+  // Filter & sort events
   const filteredEvents = useMemo(() => {
     let filtered = [...events];
 
@@ -50,14 +47,12 @@ export default function PastEventsList({
         event.event_name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
     // Apply year filter
     if (selectedYear !== "all") {
       filtered = filtered.filter(event => 
         new Date(event.event_date).getFullYear().toString() === selectedYear
       );
     }
-
     // Apply sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -73,7 +68,6 @@ export default function PastEventsList({
           return 0;
       }
     });
-
     return filtered;
   }, [events, searchTerm, selectedYear, sortBy]);
 
@@ -86,88 +80,6 @@ export default function PastEventsList({
   const handleFilterChange = (setter: (value: string) => void) => (value: string) => {
     setter(value);
     setCurrentPage(1);
-  };
-
-  const Pagination = () => {
-    if (totalPages <= 1) return null;
-
-    const getVisiblePages = () => {
-      const pages = [];
-      const maxVisible = 5;
-      
-      if (totalPages <= maxVisible) {
-        for (let i = 1; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        if (currentPage <= 3) {
-          for (let i = 1; i <= 4; i++) {
-            pages.push(i);
-          }
-          pages.push('...');
-          pages.push(totalPages);
-        } else if (currentPage >= totalPages - 2) {
-          pages.push(1);
-          pages.push('...');
-          for (let i = totalPages - 3; i <= totalPages; i++) {
-            pages.push(i);
-          }
-        } else {
-          pages.push(1);
-          pages.push('...');
-          for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-            pages.push(i);
-          }
-          pages.push('...');
-          pages.push(totalPages);
-        }
-      }
-      
-      return pages;
-    };
-
-    return (
-      <div className="flex justify-center items-center gap-2 mt-6">
-        <button
-          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-          disabled={currentPage === 1}
-          className="p-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        
-        {getVisiblePages().map((page, index) => (
-          <div key={index}>
-            {page === '...' ? (
-              <span className="px-3 py-2 text-gray-500">...</span>
-            ) : (
-              <button
-                onClick={() => setCurrentPage(page as number)}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentPage === page
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                {page}
-              </button>
-            )}
-          </div>
-        ))}
-        
-        <button
-          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage === totalPages}
-          className="p-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    );
   };
 
   if (events.length === 0) {
@@ -223,7 +135,11 @@ export default function PastEventsList({
             ))}
           </div>
           
-          <Pagination />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </>
       )}
     </div>

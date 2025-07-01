@@ -1,12 +1,9 @@
 "use client";
-import { useRouter } from "next/navigation"; // For Next.js App Router
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import RegisteredEvents from "../../components/RegisteredEvents"; // if .tsx
-
-
-
+import RegisteredEvents from "../../components/RegisteredEvents";
 
 type UserData = {
   user_name: string;
@@ -15,7 +12,7 @@ type UserData = {
   semester: string;
   branch: string;
   college_name: string;
-   profile_pic?: string;
+  profile_pic?: string;
 };
 
 export default function ProfilePage() {
@@ -27,7 +24,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await fetch("/api/user-profile", { cache: "no-store" });
+        const res = await fetch("/api/user-profile");
         const data = await res.json();
         setUserData(data);
       } catch (error) {
@@ -36,105 +33,144 @@ export default function ProfilePage() {
         setLoading(false);
       }
     };
-
     if (status === "authenticated") {
       fetchUserData();
+    } else if (status === "unauthenticated") {
+      setLoading(false);
+      router.push("/");
     }
-  }, [status]);
+  }, [status, session]);
 
   if (status === "loading" || loading) {
-    return <p className="text-center mt-10">Loading your profile...</p>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium">Loading your profile...</p>
+        </div>
+      </div>
+    );
   }
 
   const user = session?.user;
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 text-gray-800 font-inter">
-      {/* Header */}
-      <div className="text-left">
-        <h1 className="flex justify-start items-start gap-7 text-5xl font-bold text-[#0A4456]">
-          User Profile
-          <Image src="/person.svg" alt="Person Icon" width={45} height={45} />
-        </h1>
-
-        <p className="ml-[5px] mt-2 text-[15px] font-medium leading-[45px] text-[rgba(26,101,124,0.77)]">
-          View all your profile details here
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-50 font-inter overflow-x-hidden">
+      {/* Bg decor */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-100/60 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-100/60 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Line */}
-      <div className="w-full h-[2px] bg-[rgba(124,210,253,0.75)] rounded-md relative overflow-hidden mt-2">
-        <div className="absolute top-0 left-0 h-full w-1/3 bg-[#9DDDFE] rounded-full" />
-      </div>
-
-      {/* Profile Content */}
-      <div className="mt-12 mx-auto max-w-[900px] flex flex-col md:flex-row justify-between items-stretch gap-10">
-        {/* Left Profile Box */}
-        <div className="bg-white border border-[#7CD2FDBF] rounded-md shadow-md p-6 w-full md:max-w-sm flex flex-col items-center">
-          <h2 className="text-3xl font-bold text-[#0A4456]">
-            {userData?.user_name || user?.name || "Your Name"}
-          </h2>
-
-         {(userData?.profile_pic || user?.image) && (
-  <div className="w-36 h-36 mt-4">
-   <Image
-  src={userData?.profile_pic || user?.image || "/default-profile.png"}
-  alt="Profile picture"
-  width={144}
-  height={144}
-  className="rounded-full object-cover"
-/>
-  </div>
-)}
+      <div className="relative z-10 px-4 sm:px-6 py-6 sm:py-10 w-full max-w-full">
+        {/* Header */}
+        <div className="text-left mb-6 sm:mb-8">
+          <h1 className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-3xl sm:text-5xl font-bold text-gray-900 mb-2">
+            <span>User Profile</span>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-cyan-400 to-cyan-200 rounded-xl flex items-center justify-center shadow-lg">
+              <Image src="/person.svg" alt="Person Icon" width={20} height={20} className="sm:w-6 sm:h-6" />
+            </div>
+          </h1>
+          <p className="text-gray-600 text-base sm:text-lg font-medium">
+            View all your profile details here
+          </p>
         </div>
 
-        {/* Right Details Box */}
-        <div className="bg-white border border-[#7CD2FDBF] rounded-md p-6 w-full max-w-lg">
-          <h3 className="text-xl font-semibold text-[#0A4456] mb-4">Your Details</h3>
+        {/* Gradient line */}
+        <div className="w-full h-1 bg-gradient-to-r from-sky-400 via-cyan-400 to-transparent rounded-full mb-8 sm:mb-12 shadow-sm"></div>
 
-          <div className="grid grid-cols-2 gap-y-4 text-sm">
-            <div>
-              <p className="text-gray-500">Email</p>
-              <p className="font-medium text-[#1f1f1f] text-[14px] leading-[1.2] m-0 p-0">
-                {userData?.user_email || user?.email || "N/A"}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-500">Branch</p>
-              <p className="font-medium text-[#1f1f1f] text-[14px] leading-[1.2] m-0 p-0">
-                {userData?.branch || "N/A"}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-500">Roll No</p>
-              <p className="font-medium text-[#1f1f1f] text-[14px] leading-[1.2] m-0 p-0">
-                {userData?.roll_no || "N/A"}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-500">College Name</p>
-              <p className="font-medium text-[#1f1f1f] text-[14px] leading-[1.2] m-0 p-0">
-                Gitam
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-500">Semester</p>
-              <p className="font-medium text-[#1f1f1f] text-[14px] leading-[1.2] m-0 p-0">
-                {userData?.semester || "N/A"}
-              </p>
+        {/* Profile Content */}
+        <div className="w-full max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
+            {/* Left Profile Card */}
+            <div className="lg:col-span-1 w-full">
+              <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-6 sm:p-8 text-center shadow-xl hover:shadow-2xl transition-shadow duration-300 w-full">
+                <div className="relative inline-block mb-4 sm:mb-6">
+                  <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-gradient-to-r from-cyan-300 to-sky-300 p-1 shadow-2xl">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-blue-100 to-cyan-100">
+                      {(userData?.profile_pic || user?.image) ? (
+                        <Image
+                          src="/female.png"
+                          alt="Profile picture"
+                          width={200}
+                          height={200}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center">
+                          <Image src="/person.svg" alt="Default" width={80} height={80} className="opacity-60" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <h2 className="text-3xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">
+                  {userData?.user_name || user?.name || "Your Name"}
+                </h2>
+                <p className="text-sky-400 font-semibold text-xl mb-4 sm:mb-6">Student</p>
+              </div>
             </div>
 
-            {/* Edit Profile Button */}
-            <button   onClick={() => router.push("user-dashboard/edit-profile")}
-            className="mt-6 px-3 py-1.5 bg-[#00D0FF] text-white text-sm font-medium rounded-md flex items-center gap-2 hover:bg-[#5dcffb] transition w-fit">
-              <Image src="/edit_icon.svg" alt="Edit Icon" width={18} height={18} />
-              <p className="font-medium text-white">Edit Profile</p>
-            </button>
+            {/* Right Details Card */}
+            <div className="lg:col-span-2 w-full">
+              <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300 w-full">
+                <div className="flex items-center gap-3 mb-6 sm:mb-8">
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Your Details</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-cyan-400 to-transparent"></div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="space-y-2 min-w-0">
+                    <p className="text-gray-500 text-xs sm:text-sm font-semibold uppercase tracking-wider">Email</p>
+                    <p className="text-gray-900 text-base sm:text-lg font-medium break-all overflow-wrap-anywhere">
+                      {userData?.user_email || user?.email || "N/A"}
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2 min-w-0">
+                    <p className="text-gray-500 text-xs sm:text-sm font-semibold uppercase tracking-wider">Branch</p>
+                    <p className="text-gray-900 text-base sm:text-lg font-medium break-words">
+                      {userData?.branch || "N/A"}
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2 min-w-0">
+                    <p className="text-gray-500 text-xs sm:text-sm font-semibold uppercase tracking-wider">Roll Number</p>
+                    <p className="text-gray-900 text-base sm:text-lg font-medium break-all">
+                      {userData?.roll_no || "N/A"}
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2 min-w-0">
+                    <p className="text-gray-500 text-xs sm:text-sm font-semibold uppercase tracking-wider">College Name</p>
+                    <p className="text-gray-900 text-base sm:text-lg font-medium break-words">Gitam</p>
+                  </div>
+                  
+                  <div className="space-y-2 min-w-0">
+                    <p className="text-gray-500 text-xs sm:text-sm font-semibold uppercase tracking-wider">Semester</p>
+                    <p className="text-gray-900 text-base sm:text-lg font-medium">
+                      {userData?.semester || "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1 min-w-0 mt-3 sm:mt-8">
+                    <button
+                      onClick={() => router.push("user-dashboard/edit-profile")}
+                      className="w-full bg-gradient-to-r from-sky-300 to-cyan-300 hover:from-sky-400 hover:to-cyan-300 text-white font-semibold py-2 sm:py-3 px-5 sm:px-7 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-3 text-base sm:text-lg"
+                    >
+                      <Image src="/edit_icon.svg" alt="Edit Icon" width={17} height={17} className="sm:w-6 sm:h-6" />
+                      Edit Profile
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <RegisteredEvents />
+        <RegisteredEvents />
+      </div>
     </div>
   );
 }

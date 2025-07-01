@@ -22,7 +22,7 @@ export async function GET(req: Request)
   }
 
   const { rows } = await pool.query(
-    "SELECT USER_NAME, USER_EMAIL, ROLL_NO, SEMESTER, BRANCH,COLLEGE_NAME,profile_pic FROM USERS WHERE USER_EMAIL = $1",
+    "SELECT USER_NAME, USER_EMAIL, ROLL_NO, SEMESTER, BRANCH, COLLEGE_NAME, PROFILE_PIC, ROLE FROM USERS WHERE USER_EMAIL = $1",
     [session.user.email]
   );
 
@@ -40,24 +40,16 @@ export async function POST(req: NextRequest) {
   if (!email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  
   const { rollNo, semester, branch, username } = body;
-  
-
 
   try {
     const result = await pool.query(
       "UPDATE USERS SET ROLL_NO = $1, SEMESTER = $2, BRANCH = $3, USER_NAME = $4 WHERE USER_EMAIL = $5",
       [rollNo, semester, branch, username, email]
     );
-    
-
-    
-    if (result.rowCount === 0) {
-      return NextResponse.json({ error: "User not found or no changes made" }, { status: 404 });
-    }
-    
+    if (result.rowCount === 0) { return NextResponse.json({ error: "User not found or no changes made" }, { status: 404 }); }
     return NextResponse.json({ success: true });
+
   } catch (err) {
     console.error("Database error:", err);
     return NextResponse.json({ 

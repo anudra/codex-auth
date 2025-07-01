@@ -52,7 +52,8 @@ export default function EventsPage() {
         const response = await fetch("/api/event-registration");
         if (response.ok) {
           const data = await response.json();
-          setRegisteredEvents(data.eventIds || []);
+          const eventIds = (data.events || []).map((event: { event_id: number }) => event.event_id);
+          setRegisteredEvents(eventIds);
         } else if (response.status === 401) {
           return;
         } else {
