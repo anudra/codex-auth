@@ -88,19 +88,13 @@ export default function ProfilePage() {
                 <div className="relative inline-block mb-4 sm:mb-6">
                   <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-gradient-to-r from-cyan-300 to-sky-300 p-1 shadow-2xl">
                     <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-blue-100 to-cyan-100">
-                      {(userData?.profile_pic || user?.image) ? (
-                        <Image
-                          src="/female.png"
+                      <Image
+                          src={userData?.profile_pic || user?.image || "/default-profile.png"}
                           alt="Profile picture"
                           width={200}
                           height={200}
                           className="w-full h-full object-cover"
                         />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center">
-                          <Image src="/person.svg" alt="Default" width={80} height={80} className="opacity-60" />
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>

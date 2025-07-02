@@ -7,14 +7,15 @@ import { useRouter } from "next/navigation";
 
 // Avatar selector component
 const avatars = [
-  "https://i.ibb.co/yF6QtjyR/vibrent-1.png",
-  "https://i.ibb.co/G4zS9T16/upstream-2.png",
-  "https://i.ibb.co/1YjKHc71/upstream-13.png",
-  "https://i.ibb.co/GfrVGPqg/upstream-11.png",
-  "https://i.ibb.co/FLnq8K8m/bluey-2.png",
-  "https://i.ibb.co/XfKjQC3r/bluey-1.png",
-  "https://i.ibb.co/SDzYjVxH/toon-9.png",
-  "https://i.ibb.co/gLc6JqkR/toon-10.png",
+  "https://drive.google.com/uc?export=view&id=1I9mqMVst3ZzXD49xkpQwHhahRpr78Raz",
+  "https://drive.google.com/uc?export=view&id=1XS3n7EeSWKG-8S8ZdW_9Z5_DNHwWsUKV",
+  "https://drive.google.com/uc?export=view&id=14FsLD_RvzEJYoFugIPKYKtXOQ0Ypd69l",
+  "https://drive.google.com/uc?export=view&id=1tIVgsXVb7-JX2T0RN7-IvabCWGrgrJQb",
+  "https://drive.google.com/uc?export=view&id=1tYHiZZzBI-I1yYOEsCWZ7seNZwZd3x1l",
+  "https://drive.google.com/uc?export=view&id=1y6AyJXdS4Mzln6NsA8m-xmQ9Kj-tFhBo",
+  "https://drive.google.com/uc?export=view&id=1TAxsvE9PJCYFuj6yr9LzDpGBHzyArtPQ",
+  "https://drive.google.com/uc?export=view&id=1qleaGbussXQJuk3caGNPlu7KgahQwSAj",
+  "https://drive.google.com/uc?export=view&id=1LlpLl8SGDObLSjGbbmAzCD1Zo-BUAEew",
 ];
 
 function AvatarSelector({ onSelect }: { onSelect: (url: string) => void }) {
@@ -24,9 +25,9 @@ function AvatarSelector({ onSelect }: { onSelect: (url: string) => void }) {
         <p className="text-gray-600 font-medium text-sm">Choose Your Avatar</p>
       </div>
       {avatars.map((url, index) => (
-        <img
-          key={index}
-          src={url}
+        <Image
+          key={index} src={url}
+          width={80} height={80}
           alt={`Avatar ${index + 1}`}
           onClick={() => onSelect(url)}
           className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover cursor-pointer border-3 border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all duration-200 transform hover:scale-105"
